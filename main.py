@@ -3,7 +3,9 @@ import sqlite3
 
 app = FastAPI()
 
-# set up SQLite database connection
+# Set up SQLite database connection
+# Need to run with 'check_same_thread' since SQLite is file-based
+# isn't intended for "multithreaded" apps like a server
 conn = sqlite3.connect('/app/mydatabase.db', check_same_thread=False)
 print('Database connection established.')
 
