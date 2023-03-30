@@ -1,0 +1,10 @@
+version: '3.9'
+
+services:
+  server:
+    build: .
+    container_name: server
+    volumes:
+      - "./mydatabase.db:/app/mydatabase.db"
+    ports:
+      - "8000:8000"
