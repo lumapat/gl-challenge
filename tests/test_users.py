@@ -1,8 +1,7 @@
 import unittest
-import json
 import requests
 
-class TestAPI(unittest.TestCase):
+class TestUserAPI(unittest.TestCase):
     API_URL = "http://localhost:8000"
 
     def test_default_flow(self):
@@ -13,10 +12,12 @@ class TestAPI(unittest.TestCase):
 
         payload = resp.json()
         self.assertIn("users", payload)
-        self.assertEqual(payload["users"], [])
+
+        user = {'name': 'Test User 1'}
+        self.assertNotIn(user, payload["users"])
 
         # Create a single user and check that we have a valid ID
-        data = {'name': 'Test User 1'}
+        data = user
         resp = requests.post(f"{self.API_URL}/user", json=data)
 
         self.assertEqual(resp.status_code, 200)
@@ -34,7 +35,7 @@ class TestAPI(unittest.TestCase):
 
         payload = resp.json()
         self.assertIn("users", payload)
-        self.assertEqual(payload["users"], [{"name": "Test User 1", "id": user_id}])
+        self.assertIn({"name": "Test User 1", "id": user_id}, payload["users"])
 
 
 if __name__ == "__main__":

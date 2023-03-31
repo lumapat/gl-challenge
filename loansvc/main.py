@@ -17,3 +17,13 @@ def get_users():
 def create_user(user: models.User):
     user_id = db.create_user(user)
     return {'id': user_id}
+
+@app.get("/user/{user_id}/loans")
+def get_user_loans(user_id: int):
+    loans = db.get_user_loans(user_id)
+    return {'loans': loans}
+
+@app.post("/loan/{user_id}")
+def create_loan_for_user(user_id: int, loan: models.Loan):
+    loan_id = db.create_loan_for_user(loan, user_id)
+    return {'id': loan_id}
