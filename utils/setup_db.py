@@ -4,7 +4,7 @@ import sqlite3
 db_path = getenv("DB_PATH", "/app/mydatabase.db")
 
 setup_query = """
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE IF NOT EXISTS user (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL
 );

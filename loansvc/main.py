@@ -1,30 +1,19 @@
 from fastapi import FastAPI
+from loansvc import db
 from loansvc import models
 
-import sqlite3
-
 app = FastAPI()
-
-# Set up SQLite database connection
-# Need to run with 'check_same_thread' since SQLite is file-based
-# isn't intended for "multithreaded" apps like a server
-conn = sqlite3.connect('/app/mydatabase.db', check_same_thread=False)
-print('Database connection established.')
 
 @app.get("/")
 def index():
     return {"message": "Welcome to my REST API!"}
 
-# TODO: Put this in a new file
 @app.get("/users")
 def get_users():
-    cursor = conn.execute('SELECT * FROM users;')
-    users = [{'id': row[0], 'name': row[1]} for row in cursor.fetchall()]
+    users = db.get_all_users()
     return {'users': users}
 
 @app.post("/user")
 def create_user(user: models.User):
-    d = user.dict()
-
-    # TODO: Implement
-    return d
+    user_id = db.create_user(user)
+    return {'id': user_id}
