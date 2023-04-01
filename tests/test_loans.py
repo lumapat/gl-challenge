@@ -18,13 +18,16 @@ class TestLoansAPI(unittest.TestCase):
         user_id = payload["id"]
 
         # Ensure we have no loans under that user
-        resp = requests.get(f"{self.API_URL}/user/{user_id}/loans")
+        def validate_loans_under_user(user_id, expected_loans):
+            resp = requests.get(f"{self.API_URL}/user/{user_id}/loans")
 
-        self.assertEqual(resp.status_code, 200)
+            self.assertEqual(resp.status_code, 200)
 
-        payload = resp.json()
-        self.assertIn("loans", payload)
-        self.assertEqual(payload["loans"], [])
+            payload = resp.json()
+            self.assertIn("loans", payload)
+            self.assertEqual(payload["loans"], expected_loans)
+
+        validate_loans_under_user(user_id, [])
 
         # Create a new loan
         loan = {
@@ -33,7 +36,7 @@ class TestLoansAPI(unittest.TestCase):
             "annual_ir": 3.14,
         }
 
-        resp = requests.post(f"{self.API_URL}/loan/{user_id}", json=loan)
+        resp = requests.post(f"{self.API_URL}/loan", json=loan)
         self.assertEqual(resp.status_code, 200)
 
         payload = resp.json()
@@ -42,14 +45,18 @@ class TestLoansAPI(unittest.TestCase):
         loan_id = payload["id"]
         self.assertTrue(loan_id > 0)
 
-        # Check that loan is created
-        resp = requests.get(f"{self.API_URL}/user/{user_id}/loans")
+        validate_loans_under_user(user_id, [])
+
+        # Associate loan with user
+        resp = requests.put(f"{self.API_URL}/loan/{loan_id}/users", json={
+            "user_ids": [user_id]
+        })
 
         self.assertEqual(resp.status_code, 200)
 
-        payload = resp.json()
+        # Check we now have a loan under our user
         loan["id"] = loan_id
-        self.assertEqual(payload, {"loans": [loan]})
+        validate_loans_under_user(user_id, [loan])
 
 
 if __name__ == "__main__":

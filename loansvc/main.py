@@ -1,8 +1,13 @@
 from fastapi import FastAPI
 from loansvc import db
 from loansvc import models
+from pydantic import BaseModel
+from typing import List
 
 app = FastAPI()
+
+class UserList(BaseModel):
+    user_ids: List[int]
 
 @app.get("/")
 def index():
@@ -23,7 +28,17 @@ def get_user_loans(user_id: int):
     loans = db.get_user_loans(user_id)
     return {'loans': loans}
 
-@app.post("/loan/{user_id}")
-def create_loan_for_user(user_id: int, loan: models.Loan):
-    loan_id = db.create_loan_for_user(loan, user_id)
+@app.post("/loan")
+def create_loan(loan: models.Loan):
+    loan_id = db.create_loan(loan)
     return {'id': loan_id}
+
+@app.get("/loan/{loan_id}")
+def get_loan(loan_id: int):
+    loan = db.get_loan(loan_id)
+    return {'loan': loan}
+
+@app.put("/loan/{loan_id}/users")
+def add_user_to_loan(loan_id: int, user_list: UserList):
+    db.add_loan_users(loan_id, user_list.user_ids)
+    return {}
