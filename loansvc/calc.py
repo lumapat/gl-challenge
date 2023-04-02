@@ -5,12 +5,40 @@ from typing import List
 
 
 @dataclass
-class LoanScheduleEntry:
+class SimpleLoanScheduleEntry:
     month: int
     remaining_balance: Decimal
     monthly_payment: Decimal
 
+@dataclass
+class LoanScheduleEntry:
+    month: int
+    remaining_balance: Decimal
+    raw_monthly_payment: Decimal
+    adjusted_monthly_payment: Decimal
+    interest_accrued: Decimal
+
+@dataclass
+class LoanSummary:
+    month: int
+    current_principal_balance: Decimal
+    aggregate_principal_paid: Decimal
+    aggregate_interest_paid: Decimal
+
+
+# TODO: We might want to associate the loan's ID here
 LoanSchedule = List[LoanScheduleEntry]
+SimpleLoanSchedule = List[SimpleLoanScheduleEntry]
+
+def make_schedule_simple(schedule: LoanSchedule) -> SimpleLoanSchedule:
+    return [
+        SimpleLoanScheduleEntry(
+            month=e.month,
+            remaining_balance=e.remaining_balance,
+            monthly_payment=e.adjusted_monthly_payment,
+        )
+        for e in schedule
+    ]
 
 def generate_schedule(loan: Loan) -> LoanSchedule:
     # Simple validation to not throw off the schedule formula
@@ -39,7 +67,13 @@ def generate_schedule(loan: Loan) -> LoanSchedule:
         schedule.append(LoanScheduleEntry(
             month=i,
             remaining_balance=balance,
-            monthly_payment=adjusted_payment,
+            raw_monthly_payment=monthly_payment,
+            adjusted_monthly_payment=adjusted_payment,
+            interest_accrued=interest,
         ))
 
     return schedule
+
+
+def generate_summary(schedule: LoanSchedule, month: int) -> LoanSummary:
+    pass
