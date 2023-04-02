@@ -1,4 +1,4 @@
-from loansvc.calc import generate_schedule, make_schedule_simple, SimpleLoanScheduleEntry
+from loansvc.calc import generate_schedule, generate_summary, make_schedule_simple, SimpleLoanScheduleEntry, LoanScheduleEntry
 from loansvc.models import Loan
 from decimal import Decimal
 
@@ -110,3 +110,49 @@ def test_generate_schedule_no_amount():
 
     # THEN
     assert schedule == []
+
+
+def test_generate_summary():
+    # GIVEN
+    term = 6
+    balance = 3600
+    monthly_payment = 600
+    schedule = [
+        LoanScheduleEntry(
+            month=i,
+            remaining_balance=balance - i * monthly_payment,
+            raw_monthly_payment=monthly_payment,
+            adjusted_monthly_payment=monthly_payment,
+            interest_accrued=70 - i * 10,
+        )
+        for i in range(1, term+1)
+    ]
+
+    # WHEN
+    summary = generate_summary(schedule, 4)
+
+    # THEN
+    assert summary.month == 4
+    assert summary.current_principal_balance == 1200
+    assert summary.aggregate_interest_paid == 180
+    assert summary.aggregate_principal_paid == 2400
+
+
+def test_generate_summary_bad_month():
+    # GIVEN
+    schedule = [
+        LoanScheduleEntry(
+            month=1,
+            remaining_balance=0,
+            raw_monthly_payment=2400,
+            adjusted_monthly_payment=2400,
+            interest_accrued=0,
+        )
+    ]
+
+    # WHEN
+    try:
+        _ = generate_summary(schedule, 0)
+        assert False, "expecting exception"
+    except:
+        assert True

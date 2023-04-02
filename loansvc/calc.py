@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from decimal import Decimal
+from functools import reduce
 from loansvc.models import Loan
 from typing import List
 
@@ -76,4 +77,18 @@ def generate_schedule(loan: Loan) -> LoanSchedule:
 
 
 def generate_summary(schedule: LoanSchedule, month: int) -> LoanSummary:
-    pass
+    if month <= 0 or month > len(schedule):
+        raise Exception("invalid month")
+
+    summary = LoanSummary(
+        month=month,
+        current_principal_balance=schedule[month-1].remaining_balance,
+        aggregate_interest_paid=Decimal(0),
+        aggregate_principal_paid=Decimal(0),
+    )
+
+    for e in schedule[:month]:
+        summary.aggregate_interest_paid += e.interest_accrued
+        summary.aggregate_principal_paid += e.raw_monthly_payment
+
+    return summary

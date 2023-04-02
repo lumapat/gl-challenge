@@ -74,7 +74,22 @@ class TestLoansAPI(unittest.TestCase):
         # This is just light validation on the output of the API call
         schedule = payload["schedule"]
         self.assertEqual(loan["loan_term"], len(schedule))
-        self.assertTrue(schedule[-1]["remaining_balance"] <= 1e-3)
+        self.assertAlmostEqual(schedule[-1]["remaining_balance"], 0, 3)
+
+        # Generate the loan summary at month 4
+        resp = requests.get(f"{self.API_URL}/loan/{loan_id}/summary/4")
+
+        self.assertEqual(resp.status_code, 200)
+
+        payload = resp.json()
+        self.assertIn("summary", payload)
+
+        summary = payload["summary"]
+        self.assertEqual(4, summary["month"])
+        self.assertGreater(summary["current_principal_balance"], 0)
+        self.assertGreater(summary["aggregate_interest_paid"], 0)
+        self.assertGreater(summary["aggregate_principal_paid"], 0)
+
 
 
 if __name__ == "__main__":

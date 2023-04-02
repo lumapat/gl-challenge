@@ -42,8 +42,17 @@ def get_loan(loan_id: int):
 @app.get("/loan/{loan_id}/schedule")
 def get_loan_schedule(loan_id: int):
     loan = db.get_loan(loan_id)
-    schedule = calc.generate_schedule(loan)
+    schedule = calc.make_schedule_simple(calc.generate_schedule(loan))
+
     return {'schedule': schedule}
+
+@app.get("/loan/{loan_id}/summary/{month}")
+def get_loan_schedule(loan_id: int, month: int):
+    loan = db.get_loan(loan_id)
+    schedule = calc.generate_schedule(loan)
+    summary = calc.generate_summary(schedule, month)
+
+    return {'summary': summary}
 
 @app.put("/loan/{loan_id}/users")
 def add_user_to_loan(loan_id: int, user_list: UserList):
