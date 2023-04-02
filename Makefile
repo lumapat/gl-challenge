@@ -6,6 +6,9 @@ e2e-test:
 	@./e2e-tests.sh || true
 	@docker compose down
 
+unit-test:
+	@python3 -m pytest tests/unit/*.py -v
+
 run:
 	@docker compose up --build -d
 
