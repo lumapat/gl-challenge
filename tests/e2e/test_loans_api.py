@@ -1,13 +1,12 @@
 import unittest
 import requests
 
+
 class TestLoansAPI(unittest.TestCase):
     API_URL = "http://localhost:8000"
 
-    def test_default_flow(self):
-        # Setup
-        # Create a new user
-        data = {'name': 'Jane Doe'}
+    def create_user(self, name: str) -> int:
+        data = {'name': name}
         resp = requests.post(f"{self.API_URL}/user", json=data)
 
         self.assertEqual(resp.status_code, 200)
@@ -15,7 +14,12 @@ class TestLoansAPI(unittest.TestCase):
         payload = resp.json()
         self.assertIn("id", payload)
 
-        user_id = payload["id"]
+        return payload["id"]
+
+    def test_default_flow(self):
+        # Setup
+        # Create a new user
+        user_id = self.create_user("Jane Doe")
 
         # Ensure we have no loans under that user
         def validate_loans_under_user(user_id, expected_loans):
@@ -31,9 +35,9 @@ class TestLoansAPI(unittest.TestCase):
 
         # Create a new loan
         loan = {
-            "loan_term": 3,
-            "amount": 1000000.01,
-            "annual_ir": 3.14,
+            "loan_term": 6,
+            "amount": 3600,
+            "annual_ir": 2,
         }
 
         resp = requests.post(f"{self.API_URL}/loan", json=loan)
@@ -57,6 +61,20 @@ class TestLoansAPI(unittest.TestCase):
         # Check we now have a loan under our user
         loan["id"] = loan_id
         validate_loans_under_user(user_id, [loan])
+
+        # Generate the loan schedule
+        resp = requests.get(f"{self.API_URL}/loan/{loan_id}/schedule")
+
+        self.assertEqual(resp.status_code, 200)
+
+        payload = resp.json()
+        self.assertIn("schedule", payload)
+
+        # The actual logic for this is tested in the unit test
+        # This is just light validation on the output of the API call
+        schedule = payload["schedule"]
+        self.assertEqual(loan["loan_term"], len(schedule))
+        self.assertTrue(schedule[-1]["remaining_balance"] <= 1e-3)
 
 
 if __name__ == "__main__":

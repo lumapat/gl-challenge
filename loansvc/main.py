@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from loansvc import db
+from loansvc import calc
 from loansvc import models
 from pydantic import BaseModel
 from typing import List
@@ -37,6 +38,12 @@ def create_loan(loan: models.Loan):
 def get_loan(loan_id: int):
     loan = db.get_loan(loan_id)
     return {'loan': loan}
+
+@app.get("/loan/{loan_id}/schedule")
+def get_loan_schedule(loan_id: int):
+    loan = db.get_loan(loan_id)
+    schedule = calc.generate_schedule(loan)
+    return {'schedule': schedule}
 
 @app.put("/loan/{loan_id}/users")
 def add_user_to_loan(loan_id: int, user_list: UserList):
