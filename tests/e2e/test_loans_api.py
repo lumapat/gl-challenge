@@ -78,7 +78,7 @@ class TestLoansAPI(unittest.TestCase):
         self.assertAlmostEqual(schedule[-1]["remaining_balance"], 0, 3)
 
         # Generate the loan summary at month 4
-        resp = requests.get(f"{self.API_URL}/loan/{loan_id}/summary/4")
+        resp = requests.get(f"{self.API_URL}/loan/{loan_id}/summary/month/4")
 
         self.assertEqual(resp.status_code, 200)
 
@@ -155,7 +155,7 @@ class TestLoansAPI(unittest.TestCase):
         bad_loan_id=9876543210
 
         # WHEN
-        resp = requests.get(f"{self.API_URL}/loan/{bad_loan_id}/summary/1")
+        resp = requests.get(f"{self.API_URL}/loan/{bad_loan_id}/summary/month/1")
 
         # THEN
         self.assertEqual(resp.status_code, 404)

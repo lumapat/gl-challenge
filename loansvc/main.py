@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from loansvc import db
 from loansvc import calc
 from loansvc import errors
@@ -60,7 +60,7 @@ def get_loan_schedule(loan_id: int):
     return {'schedule': schedule}
 
 # TODO: Make this kv param instead
-@app.get("/loan/{loan_id}/summary/{month}")
+@app.get("/loan/{loan_id}/summary/month/{month}")
 def get_loan_summary(loan_id: int, month: int):
     loan = db.get_loan(loan_id)
 
