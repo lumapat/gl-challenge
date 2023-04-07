@@ -4,12 +4,19 @@ from typing import List, Optional
 
 DB_URI = "sqlite:////app/mydatabase.db"
 
+class NotFoundDBError(Exception):
+    def __init__(self, name: str, val: str):
+        self.name = name
+        self.val = val
+
+        super().__init__()
+
 def get_all_users() -> List[models.User]:
     engine = create_engine(DB_URI)
     with Session(engine) as session:
         return session.exec(select(models.User)).all()
 
-def get_user_loans(user_id: int) -> Optional[models.User]:
+def get_user_loans(user_id: int) -> models.User:
     engine = create_engine(DB_URI)
     with Session(engine) as session:
         # TODO: Possible we can return multiple users (from some DB mishap)
@@ -17,7 +24,7 @@ def get_user_loans(user_id: int) -> Optional[models.User]:
         user = session.exec(select(models.User).where(models.User.id == user_id)).first()
 
         if not user:
-            return None
+            raise NotFoundDBError("user", user_id)
 
         return user.loans
 
@@ -47,19 +54,23 @@ def create_loan(loan: models.Loan) -> int:
 
         return loan.id
 
-def get_loan(loan_id: int) -> Optional[models.Loan]:
-    engine = create_engine(DB_URI)
-    with Session(engine) as session:
-        return session.get(models.Loan, loan_id)
-
-
-def add_loan_users(loan_id: int, user_ids: List[int]) -> bool:
+def get_loan(loan_id: int) -> models.Loan:
     engine = create_engine(DB_URI)
     with Session(engine) as session:
         loan = session.get(models.Loan, loan_id)
 
         if not loan:
-            return False
+            raise NotFoundDBError("loan", loan_id)
+
+        return loan
+
+def add_loan_users(loan_id: int, user_ids: List[int]):
+    engine = create_engine(DB_URI)
+    with Session(engine) as session:
+        loan = session.get(models.Loan, loan_id)
+
+        if not loan:
+            raise NotFoundDBError("loan", loan_id)
 
         user_id_clauses = [
             models.User.id == user_id
@@ -72,5 +83,3 @@ def add_loan_users(loan_id: int, user_ids: List[int]) -> bool:
 
         session.add(loan)
         session.commit()
-
-        return True

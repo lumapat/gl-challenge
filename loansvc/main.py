@@ -27,10 +27,10 @@ def create_user(user: models.User):
 
 @app.get("/user/{user_id}/loans")
 def get_user_loans(user_id: int):
-    loans = db.get_user_loans(user_id)
-
-    if loans is None:
-        raise errors.NotFoundHTTPException("user", user_id)
+    try:
+        loans = db.get_user_loans(user_id)
+    except db.NotFoundDBError as e:
+        raise errors.NotFoundHTTPException(e.name, e.val)
 
     return {'loans': loans}
 
@@ -41,31 +41,30 @@ def create_loan(loan: models.Loan):
 
 @app.get("/loan/{loan_id}")
 def get_loan(loan_id: int):
-    loan = db.get_loan(loan_id)
-
-    if loan is None:
-        raise errors.NotFoundHTTPException("loan", loan_id)
+    try:
+        loan = db.get_loan(loan_id)
+    except db.NotFoundDBError as e:
+        raise errors.NotFoundHTTPException(e.name, e.val)
 
     return {'loan': loan}
 
 @app.get("/loan/{loan_id}/schedule")
 def get_loan_schedule(loan_id: int):
-    loan = db.get_loan(loan_id)
-
-    if loan is None:
-        raise errors.NotFoundHTTPException("loan", loan_id)
+    try:
+        loan = db.get_loan(loan_id)
+    except db.NotFoundDBError as e:
+        raise errors.NotFoundHTTPException(e.name, e.val)
 
     schedule = calc.make_schedule_simple(calc.generate_schedule(loan))
 
     return {'schedule': schedule}
 
-# TODO: Make this kv param instead
 @app.get("/loan/{loan_id}/summary/month/{month}")
 def get_loan_summary(loan_id: int, month: int):
-    loan = db.get_loan(loan_id)
-
-    if loan is None:
-        raise errors.NotFoundHTTPException("loan", loan_id)
+    try:
+        loan = db.get_loan(loan_id)
+    except db.NotFoundDBError as e:
+        raise errors.NotFoundHTTPException(e.name, e.val)
 
     schedule = calc.generate_schedule(loan)
     summary = calc.generate_summary(schedule, month)
@@ -74,7 +73,9 @@ def get_loan_summary(loan_id: int, month: int):
 
 @app.put("/loan/{loan_id}/users")
 def add_user_to_loan(loan_id: int, user_list: UserList):
-    if not db.add_loan_users(loan_id, user_list.user_ids):
-        raise errors.NotFoundHTTPException("loan", loan_id)
+    try:
+        db.add_loan_users(loan_id, user_list.user_ids)
+    except db.NotFoundDBError as e:
+        raise errors.NotFoundHTTPException(e.name, e.val)
 
     return {}
