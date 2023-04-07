@@ -1,3 +1,4 @@
+import json
 import unittest
 import requests
 
@@ -90,6 +91,77 @@ class TestLoansAPI(unittest.TestCase):
         self.assertGreater(summary["aggregate_interest_paid"], 0)
         self.assertGreater(summary["aggregate_principal_paid"], 0)
 
+
+    def test_get_loans_from_invalid_user(self):
+        # GIVEN
+        bad_user_id=9876543210
+
+        # WHEN
+        resp = requests.get(f"{self.API_URL}/user/{bad_user_id}/loans")
+
+        # THEN
+        self.assertEqual(resp.status_code, 404)
+
+        error_msg = json.loads(resp.content)["detail"]
+        self.assertEqual(f"Could not find user with id={bad_user_id}", error_msg)
+
+
+    def test_get_invalid_loan(self):
+        # GIVEN
+        bad_loan_id=9876543210
+
+        # WHEN
+        resp = requests.get(f"{self.API_URL}/loan/{bad_loan_id}")
+
+        # THEN
+        self.assertEqual(resp.status_code, 404)
+
+        error_msg = json.loads(resp.content)["detail"]
+        self.assertEqual(f"Could not find loan with id={bad_loan_id}", error_msg)
+
+
+    def test_add_user_to_bad_loan(self):
+        # GIVEN
+        bad_loan_id=9876543210
+
+        # WHEN
+        resp = requests.put(f"{self.API_URL}/loan/{bad_loan_id}/users", json={
+            "user_ids": [123456]
+        })
+
+        # THEN
+        self.assertEqual(resp.status_code, 404)
+
+        error_msg = json.loads(resp.content)["detail"]
+        self.assertEqual(f"Could not find loan with id={bad_loan_id}", error_msg)
+
+
+    def test_get_schedule_for_invalid_loan(self):
+        # GIVEN
+        bad_loan_id=9876543210
+
+        # WHEN
+        resp = requests.get(f"{self.API_URL}/loan/{bad_loan_id}/schedule")
+
+        # THEN
+        self.assertEqual(resp.status_code, 404)
+
+        error_msg = json.loads(resp.content)["detail"]
+        self.assertEqual(f"Could not find loan with id={bad_loan_id}", error_msg)
+
+
+    def test_get_summary_for_invalid_loan(self):
+        # GIVEN
+        bad_loan_id=9876543210
+
+        # WHEN
+        resp = requests.get(f"{self.API_URL}/loan/{bad_loan_id}/summary/1")
+
+        # THEN
+        self.assertEqual(resp.status_code, 404)
+
+        error_msg = json.loads(resp.content)["detail"]
+        self.assertEqual(f"Could not find loan with id={bad_loan_id}", error_msg)
 
 
 if __name__ == "__main__":
